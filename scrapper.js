@@ -124,6 +124,7 @@ async function loginAndScrape() {
             // Save the scraped data to a JSON file
             const filename = `${short_name}-${moment().format('YYYYMMDD-HHmmss')}.json`;
             fs.writeFileSync(path.resolve(resultsDir, filename), JSON.stringify(tableData, null, 2)); // Pretty print JSON
+            console.log(`Scraped ${tbl_name} data saved to ${filename}`);
         } else {
             console.error(`${tbl_name} table not found on the page`);
         }
