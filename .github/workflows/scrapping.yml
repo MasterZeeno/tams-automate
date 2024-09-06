@@ -4,8 +4,8 @@ on:
   # Schedule the scraper to run daily at midnight (UTC)
   schedule:
     - cron: "0 0 * * *"
-  # Optionally, run it when a push is made to the main branch
-  push:
+  # Optionally, run it when a pull request is made to the main branch
+  pull_request:
     branches:
       - main
 
@@ -18,23 +18,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Install necessary dependencies for Puppeteer
-      - name: Install Puppeteer dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libxshmfence1 libgbm1 libasound2 libxrandr2 libxss1 libgtk-3-0
-
       # Step 2: Set up Node.js (use your project’s version)
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18.x"
+          node-version: "20.x"
 
-      # Step 3: Install dependencies
+      # Step 3: Cache Node.js modules
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libx11-xcb1 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libxss1 \
+            libxtst6 \
+            libnss3 \
+            libatk-bridge2.0-0 \
+            libgtk-3-0 \
+            libgbm1
+          npm install
 
-      # Step 4: Set up environment variables (replace these with your actual variables)
+      # Step 5: Set up environment variables (replace these with your actual variables)
       - name: Set environment variables
         run: |
           echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
@@ -42,12 +60,13 @@ jobs:
           echo "TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }}" >> $GITHUB_ENV
           echo "HCC_BASE_URL=${{ secrets.HCC_BASE_URL }}" >> $GITHUB_ENV
 
-      # Step 5: Run the scraping script
+      # Step 6: Run the scraping script
       - name: Run scraper
-        run: DEBUG="puppeteer:*" node scrapper3.js
+        run: node scrapper3.js
 
-      # Optional Step 6: Commit and push results back to the repository (if needed)
-      - name: Commit and Push results
+      # Optional Step 7: Commit and push results back to the repository (if needed)
+      - name: Commit and push results
+        if: success() # Only run if previous steps are successful
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
