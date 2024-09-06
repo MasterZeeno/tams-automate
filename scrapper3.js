@@ -86,6 +86,18 @@ async function loginAndScrape() {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
     });
 
+    // Set the geolocation
+    await page.setGeolocation({ latitude: 14.5322511, longitude: 121.022031 });
+
+    // Optionally, you can also set the viewport to match the location
+    await page.setViewport({
+        width: 1280,
+        height: 800,
+    });
+
+    const context = browser.defaultBrowserContext();
+    await context.overridePermissions(process.env.HCC_BASE_URL, ['geolocation']);
+
     // Login
     await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, w);
     await page.type('input[name="username"]', process.env.ZEE_USERNAME);

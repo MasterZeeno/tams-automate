@@ -40,6 +40,7 @@ jobs:
           echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
           echo "ZEE_PASSWORD=${{ secrets.ZEE_PASSWORD }}" >> $GITHUB_ENV
           echo "TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }}" >> $GITHUB_ENV
+          echo "HCC_BASE_URL=${{ secrets.HCC_BASE_URL }}" >> $GITHUB_ENV
 
       # Step 5: Run the scraping script
       - name: Run scraper
