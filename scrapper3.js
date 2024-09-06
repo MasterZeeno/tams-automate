@@ -78,7 +78,7 @@ async function scrapeTable(page, tableURL, tbl_name) {
 }
 
 async function loginAndScrape() {
-    const browser = await puppeteer.launch({ headless: false });
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
     await page.setExtraHTTPHeaders({
