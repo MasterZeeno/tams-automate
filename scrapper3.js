@@ -11,11 +11,12 @@ if (!fs.existsSync(resultsDir)) {
     fs.mkdirSync(resultsDir);
 }
 
-const w = { waitUntil: 'domcontentloaded', timeout: 30000 }; // Faster navigation with 'domcontentloaded'
+const w = { waitUntil: 'domcontentloaded', timeout: 60000 }; // Faster navigation with 'domcontentloaded'
 
 async function scrapeTable(page, tableURL, tbl_name) {
     try {
         await page.goto(`${process.env.TAMS_BASE_URL}/filing/${tableURL}`, w); // Navigate to table URL
+        await page.waitForSelector(`table#tbl_${tbl_name}`);
     } catch (error) {
         console.error(`Error navigating to ${tableURL}: ${error.message}`);
         return;

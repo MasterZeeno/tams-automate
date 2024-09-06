@@ -43,7 +43,7 @@ jobs:
 
       # Step 5: Run the scraping script
       - name: Run scraper
-        run: node scrapper3.js
+        run: DEBUG="puppeteer:*" node scrapper3.js
 
       # Optional Step 6: Commit and push results back to the repository (if needed)
       - name: Commit and Push results
