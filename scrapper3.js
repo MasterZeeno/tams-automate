@@ -79,7 +79,10 @@ async function scrapeTable(page, tableURL, tbl_name) {
 }
 
 async function loginAndScrape() {
-    const browser = await puppeteer.launch({ headless: true });
+    // const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
     const page = await browser.newPage();
 
     await page.setExtraHTTPHeaders({

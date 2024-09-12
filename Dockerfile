@@ -45,4 +45,4 @@ RUN npm install puppeteer
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 # Run the Puppeteer script (adjust with your script's name)
-CMD ["node", "your-puppeteer-script.js"]
+CMD ["node", "scrapper3.js"]
