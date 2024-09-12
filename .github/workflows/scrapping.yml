@@ -4,10 +4,6 @@ on:
   # Schedule the scraper to run daily at midnight (UTC)
   schedule:
     - cron: "0 0 * * *"
-  # Optionally, run it when a pull request is made to the main branch
-  pull_request:
-    branches:
-      - main
 
 jobs:
   scrape:
