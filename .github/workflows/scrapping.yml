@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
+
 jobs:
   puppeteer:
     runs-on: ubuntu-latest
@@ -32,7 +35,7 @@ jobs:
           docker run --rm puppeteer-runner
 
       - name: Commit and push results
-        if: ${{ github.event_name == 'schedule' && success() }} # Only push if triggered by cron and previous steps succeed
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Only push if triggered by cron and previous steps succeed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
