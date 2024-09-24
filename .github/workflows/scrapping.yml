@@ -4,7 +4,7 @@ on:
   # Schedule the scraper to run daily at midnight (UTC)
   schedule:
     - cron: "0 0 * * *"
-
+  
   # Allow manual triggering of the workflow
   workflow_dispatch:
 
@@ -35,11 +35,17 @@ jobs:
           docker run --rm puppeteer-runner
 
       - name: Commit and push results
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Only push if triggered by cron and previous steps succeed
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Push if scheduled or manually triggered and successful
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase  # Prevent conflicts by pulling latest changes
-          git add results/*.json
-          git commit -m "Scraped data from $(date +"%Y-%m-%d %H:%M:%S")"
-          git push
+
+          # Check if there are changes to commit
+          if [ "$(git status --porcelain)" ]; then
+            git add results/*.json
+            git commit -m "Scraped data from $(date +"%Y-%m-%d %H:%M:%S")"
+            git push
+          else
+            echo "No changes to commit."
+          fi
