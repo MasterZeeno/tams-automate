@@ -29,8 +29,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     gnupg && \
     rm -rf /var/lib/apt/lists/* && \
-    npm install -g puppeteer --unsafe-perm=true && \
-    npx puppeteer install && \
     groupadd -r pptruser && \
     useradd -rm -g pptruser -G audio,video pptruser && \
     mkdir -p /home/pptruser/Downloads && \
@@ -43,17 +41,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /usr/src/app
 
 # Copy over package.json and install project dependencies
-COPY package.json ./ 
-RUN npm install
-
-# Copy the rest of the project files
 COPY . .
+
+RUN npm install && npm install puppeteer && \
+npx puppeteer install --with-dependencies
 
 # Run everything after as non-privileged user
 USER pptruser
-
-# Expose display port (for debugging)
-EXPOSE 9222
 
 # Command to start your Puppeteer script
 CMD ["node", "scrapper3.js"]
