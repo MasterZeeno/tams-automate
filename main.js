@@ -56,9 +56,9 @@ async function scrapeTable(page, tableURL, tbl_name) {
         const filename = `${tableURL}-data.json`;
         fs.writeFileSync(path.resolve(resultsDir, filename), JSON.stringify(tableData, null, 2));
         console.log(`Scraped ${tbl_name} data saved to ${filename}`);
-    return;
+        return;
     }
-  console.error(`${tbl_name} table not found on ${tableURL}`);
+    console.error(`${tbl_name} table not found on ${tableURL}`);
 }
 
 // Main function to log in and scrape
@@ -68,22 +68,22 @@ async function loginAndScrape() {
         ignoreHTTPSErrors: true,
         devtools: false,
         args: [
-          '--disable-infobars',
-          '--enable-automation',
-          '--start-maximized',
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-accelerated-2d-canvas',
-          '--no-zygote',
-          '--no-first-run',
-          '--disable-web-security',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--mute-audio',
-          '--incognito',
-          '--ignore-certificate-errors',
-          '--disable-blink-features=AutomationControlled'
+            '--disable-infobars',
+            '--enable-automation',
+            '--start-maximized',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-accelerated-2d-canvas',
+            '--no-zygote',
+            '--no-first-run',
+            '--disable-web-security',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-extensions',
+            '--mute-audio',
+            '--incognito',
+            '--ignore-certificate-errors',
+            '--disable-blink-features=AutomationControlled'
         ]
     });
 
@@ -102,7 +102,18 @@ async function loginAndScrape() {
     });
 
     // Login
-    await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, w);
+    try {
+        // Try to navigate to the page with the specified timeout
+        await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, { timeout: 6000 }); // Timeout set to 5 seconds
+    } catch (error) {
+        if (error instanceof puppeteer.errors.TimeoutError) {
+            // Take a screenshot upon timeout
+            await page.screenshot({ path: `${resultsDir}/timeout-screenshot.png`, fullPage: true });
+        } else {
+            console.log('An error occurred:', error);
+        }
+    }
+    
     await page.type('input[name="username"]', process.env.ZEE_USERNAME);
     await page.type('input[name="password"]', process.env.ZEE_PASSWORD);
     await page.click('button[type="submit"]');

@@ -53,7 +53,7 @@ jobs:
       # Check if there are results to upload
       - name: Check for scraping results
         run: |
-          if [ ! "$(ls -A results/*.json 2>/dev/null)" ]; then
+          if [ ! "$(ls -A results/* 2>/dev/null)" ]; then
             echo "No scraping results found."
             exit 1
           fi
@@ -64,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: scraping-results
-          path: results/*.json
+          path: results/*
