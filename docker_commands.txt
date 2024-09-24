@@ -1,0 +1,4 @@
+docker build -t puppeteer-runner .
+docker run --rm puppeteer-runner
+docker tag puppeteer-runner masterzeeno/puppeteer-runner:latest
+docker push masterzeeno/puppeteer-runner:latest
