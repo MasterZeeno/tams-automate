@@ -43,8 +43,8 @@ WORKDIR /usr/src/app
 # Copy over package.json and install project dependencies
 COPY . .
 
-RUN npm install && npm install puppeteer && \
-npx puppeteer install --with-dependencies
+RUN npm install -g npm@latest && npm install && npm install puppeteer && \
+    yes | npx @puppeteer/browsers install chrome@stable
 
 # Run everything after as non-privileged user
 USER pptruser
