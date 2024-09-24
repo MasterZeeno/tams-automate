@@ -11,17 +11,19 @@ if (!fs.existsSync(resultsDir)) {
     fs.mkdirSync(resultsDir);
 }
 
-const w = { waitUntil: 'networkidle0', timeout: 60000 }; // Increase timeout to 60 seconds
+const w = { waitUntil: 'domcontentloaded', timeout: 60000 }; // Faster navigation with 'domcontentloaded'
 
 async function scrapeTable(page, tableURL, tbl_name) {
     try {
         await page.goto(`${process.env.TAMS_BASE_URL}/filing/${tableURL}`, w); // Navigate to table URL
+        await page.waitForSelector(`table#tbl_${tbl_name}`);
     } catch (error) {
         console.error(`Error navigating to ${tableURL}: ${error.message}`);
         return;
     }
 
-    const tableData = await page.evaluate((tbl_name) => {
+    // Split scraping into separate asynchronous tasks
+    const tableData = await page.evaluate(async (tbl_name) => {
         const cleanText = (input) => input.replace(/[^\x20-\x7E]/g, '').replace(/[^a-zA-Z0-9\s.,!?():-]/g, '').replace(/\s+/g, ' ').trim();
 
         const parseDate = (dateStr) => {
@@ -44,19 +46,31 @@ async function scrapeTable(page, tableURL, tbl_name) {
         const rows = Array.from(table.querySelectorAll('tr'));
         const headers = Array.from(rows.shift().querySelectorAll('th')).map(header => cleanText(header.textContent)).filter(header => header !== 'Action');
 
-        return rows.map(row => {
-            const cells = Array.from(row.querySelectorAll('td'));
-            return headers.reduce((rowData, header, index) => {
-                const cleaned = cleanText(cells[index].textContent);
-                rowData[header] = header.toLowerCase().includes('date') ? parseDate(cleaned) : header.toLowerCase().includes('duration') ? formatDuration(cleaned) : cleaned;
-                return rowData;
-            }, {});
-        });
+        // Function to scrape a chunk of the table
+        const scrapeChunk = (startIndex, endIndex) => {
+            return rows.slice(startIndex, endIndex).map(row => {
+                const cells = Array.from(row.querySelectorAll('td'));
+                return headers.reduce((rowData, header, index) => {
+                    const cleaned = cleanText(cells[index].textContent);
+                    rowData[header] = header.toLowerCase().includes('date') ? parseDate(cleaned) : header.toLowerCase().includes('duration') ? formatDuration(cleaned) : cleaned;
+                    return rowData;
+                }, {});
+            });
+        };
+
+        const chunkSize = Math.ceil(rows.length / 3); // Split table into 3 chunks
+        const chunks = await Promise.all([
+            scrapeChunk(0, chunkSize),
+            scrapeChunk(chunkSize, chunkSize * 2),
+            scrapeChunk(chunkSize * 2, rows.length)
+        ]);
+
+        return chunks.flat(); // Merge chunks into one array
     }, tbl_name);
 
     if (tableData) {
         const short_name = tbl_name === 'overtime' ? 'ot' : (tbl_name === 'leaves' ? 'lv' : tbl_name);
-        const filename = `${short_name}-${moment().format('YYYYMMDD-HHmmss')}.json`;
+        const filename = `${short_name}-data.json`;
         fs.writeFileSync(path.resolve(resultsDir, filename), JSON.stringify(tableData, null, 2));
         console.log(`Scraped ${tbl_name} data saved to ${filename}`);
     } else {
@@ -65,12 +79,28 @@ async function scrapeTable(page, tableURL, tbl_name) {
 }
 
 async function loginAndScrape() {
-    const browser = await puppeteer.launch({ headless: false });
+    // const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
     const page = await browser.newPage();
 
     await page.setExtraHTTPHeaders({
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
     });
+
+    // Set the geolocation
+    await page.setGeolocation({ latitude: 14.5322511, longitude: 121.022031 });
+
+    // Optionally, you can also set the viewport to match the location
+    await page.setViewport({
+        width: 1280,
+        height: 800,
+    });
+
+    const context = browser.defaultBrowserContext();
+    await context.overridePermissions(process.env.HCC_BASE_URL, ['geolocation']);
 
     // Login
     await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, w);
@@ -78,10 +108,6 @@ async function loginAndScrape() {
     await page.type('input[name="password"]', process.env.ZEE_PASSWORD);
     await page.click('button[type="submit"]');
     await page.waitForNavigation(w);
-
-    if (!await page.$('input[name="employee_id"]')) {
-        throw new Error('Login failed');
-    }
 
     // Open new tabs for each table to be scraped
     const filings = {

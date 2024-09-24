@@ -1,17 +1,18 @@
 {
   "name": "tams-automate",
   "version": "0.0.1",
-  "main": "scrapper3.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node scrapper.js"
+    "test": "node main.js"
   },
   "keywords": [],
   "author": "MasterZeeno <zeenoliev@gmail.com>",
   "license": "MIT",
   "description": "",
   "dependencies": {
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "moment": "^2.30.1",
-    "puppeteer": "^23.3.0"
+    "puppeteer": "^23.4.0"
   }
 }
