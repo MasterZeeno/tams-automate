@@ -21,7 +21,7 @@ jobs:
       - name: Install
         uses: AMO-brandon/puppeteer-container@v0.2.0
         with:
-          args: npm install
+          args: pnpm i
       - name: Set environment variables
         run: |
           echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
@@ -31,4 +31,4 @@ jobs:
       - name: Test
         uses: AMO-brandon/puppeteer-container@v0.2.0
         with:
-          args: npm test
+          args: pnpm t
