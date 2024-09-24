@@ -12,23 +12,33 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set Timezone to Asia/Manila
-        run: |
-          sudo ln -snf /usr/share/zoneinfo/Asia/Manila /etc/localtime
-          echo "Asia/Manila" | sudo tee /etc/timezone
-      - name: Install
-        uses: AMO-brandon/puppeteer-container@v0.2.0
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          args: pnpm i
-      - name: Set environment variables
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Docker image
+        run: docker pull masterzeeno/puppeteer-runner:latest
+
+      - name: Run Docker container
+        run: docker run masterzeeno/puppeteer-runner:latest
+
+      - name: Commit and push results
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Push if scheduled or manually triggered and successful
         run: |
-          echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
-          echo "ZEE_PASSWORD=${{ secrets.ZEE_PASSWORD }}" >> $GITHUB_ENV
-          echo "TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }}" >> $GITHUB_ENV
-          echo "HCC_BASE_URL=${{ secrets.HCC_BASE_URL }}" >> $GITHUB_ENV
-      - name: Test
-        uses: AMO-brandon/puppeteer-container@v0.2.0
-        with:
-          args: pnpm t
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase  # Prevent conflicts by pulling latest changes
+
+          # Check if there are changes to commit
+          if [ "$(git status --porcelain)" ]; then
+            git add results/*.json
+            git commit -m "Scraped data on: $(date +"%Y-%m-%d %H:%M:%S")"
+            git push
+          else
+            echo "No changes to commit."
+          fi
