@@ -1,7 +1,7 @@
 {
   "name": "tams-automate",
   "version": "0.0.1",
-  "main": "scrapper.js",
+  "main": "scrapper3.js",
   "scripts": {
     "start": "node scrapper.js"
   },

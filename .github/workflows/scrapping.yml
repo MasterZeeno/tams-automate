@@ -6,49 +6,16 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  scrape:
+  puppeteer:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js (use your project’s version)
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "20.x"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      # Step 3: Cache Node.js modules
-      - name: Cache Node.js modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.npm
-            node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Step 4: Install dependencies
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libx11-xcb1 \
-            libxcomposite1 \
-            libxdamage1 \
-            libxrandr2 \
-            libxss1 \
-            libxtst6 \
-            libnss3 \
-            libatk-bridge2.0-0 \
-            libgtk-3-0 \
-            libgbm1
-          npm install
-
-      # Step 5: Set up environment variables (replace these with your actual variables)
       - name: Set environment variables
         run: |
           echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
@@ -56,16 +23,20 @@ jobs:
           echo "TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }}" >> $GITHUB_ENV
           echo "HCC_BASE_URL=${{ secrets.HCC_BASE_URL }}" >> $GITHUB_ENV
 
-      # Step 6: Run the scraping script
-      - name: Run scraper
-        run: node scrapper3.js
+      - name: Build Docker image
+        run: |
+          docker build -t puppeteer-runner .
 
-      # Optional Step 7: Commit and push results back to the repository (if needed)
+      - name: Run Puppeteer tests
+        run: |
+          docker run --rm puppeteer-runner
+
       - name: Commit and push results
-        if: success() # Only run if previous steps are successful
+        if: ${{ github.event_name == 'schedule' && success() }} # Only push if triggered by cron and previous steps succeed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase  # Prevent conflicts by pulling latest changes
           git add results/*.json
           git commit -m "Scraped data from $(date +"%Y-%m-%d %H:%M:%S")"
           git push

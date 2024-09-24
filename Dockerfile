@@ -1,8 +1,9 @@
-# Base image with Node.js and Chromium dependencies
+# Base image with Node.js
 FROM node:18-slim
 
-# Install Chromium dependencies
-RUN apt-get update && apt-get install -y \
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
     libappindicator3-1 \
@@ -21,28 +22,35 @@ RUN apt-get update && apt-get install -y \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
-    libu2f-udev \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    tzdata && \
+    rm -rf /var/lib/apt/lists/*
+
+# Set the timezone to Asia/Manila
+RUN ln -snf /usr/share/zoneinfo/Asia/Manila /etc/localtime && echo "Asia/Manila" > /etc/timezone
+
+# Install Puppeteer and fix missing Chromium dependency
+RUN npm install puppeteer --global --unsafe-perm=true && \
+    groupadd -r pptruser && \
+    useradd -rm -g pptruser -G audio,video pptruser && \
+    mkdir -p /home/pptruser/Downloads && \
+    chown -R pptruser:pptruser /home/pptruser && \
+    npm cache clean --force
+
+# Run everything after as non-privileged user.
+USER pptruser
+
+# Expose display port (for debugging)
+EXPOSE 9222
 
 # Set working directory
-WORKDIR /app
+WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
+# Copy over package.json, install project dependencies
+COPY package.json ./
 RUN npm install
 
-# Copy the rest of the application
+# Copy the rest of the project
 COPY . .
 
-# Optional: if using Puppeteer with no sandbox mode
-RUN npm install puppeteer
-
-# Set environment variable to allow running as root
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
-
-# Run the Puppeteer script (adjust with your script's name)
+# Command to start your Puppeteer script
 CMD ["node", "scrapper3.js"]
