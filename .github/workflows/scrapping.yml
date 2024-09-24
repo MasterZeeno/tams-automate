@@ -19,20 +19,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set environment variables
-        run: |
-          echo "ZEE_USERNAME=${{ secrets.ZEE_USERNAME }}" >> $GITHUB_ENV
-          echo "ZEE_PASSWORD=${{ secrets.ZEE_PASSWORD }}" >> $GITHUB_ENV
-          echo "TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }}" >> $GITHUB_ENV
-          echo "HCC_BASE_URL=${{ secrets.HCC_BASE_URL }}" >> $GITHUB_ENV
-
       - name: Build Docker image
         run: |
           docker build -t puppeteer-runner .
 
       - name: Run Puppeteer tests
         run: |
-          docker run --rm puppeteer-runner
+          docker run --rm \
+            -e ZEE_USERNAME=${{ secrets.ZEE_USERNAME }} \
+            -e ZEE_PASSWORD=${{ secrets.ZEE_PASSWORD }} \
+            -e TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }} \
+            -e HCC_BASE_URL=${{ secrets.HCC_BASE_URL }} \
+            puppeteer-runner
+
 
       - name: Commit and push results
         if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Push if scheduled or manually triggered and successful

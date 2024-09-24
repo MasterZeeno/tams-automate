@@ -1,9 +1,12 @@
 # Base image with Node.js
 FROM node:18-slim
 
-# Install necessary dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Set the timezone to Asia/Manila
+RUN ln -snf /usr/share/zoneinfo/Asia/Manila /etc/localtime && \
+    echo "Asia/Manila" > /etc/timezone
+
+# Install necessary dependencies and Puppeteer
+RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
     libappindicator3-1 \
@@ -22,21 +25,19 @@ RUN apt-get update && \
     libxdamage1 \
     libxrandr2 \
     xdg-utils \
-    tzdata && \
-    rm -rf /var/lib/apt/lists/*
-
-# Set the timezone to Asia/Manila
-RUN ln -snf /usr/share/zoneinfo/Asia/Manila /etc/localtime && echo "Asia/Manila" > /etc/timezone
-
-# Install Puppeteer and fix missing Chromium dependency
-RUN npm install puppeteer --global --unsafe-perm=true && \
+    tzdata \
+    wget \
+    gnupg && \
+    rm -rf /var/lib/apt/lists/* && \
+    npm install -g puppeteer --unsafe-perm=true && \
+    npx puppeteer install && \
     groupadd -r pptruser && \
     useradd -rm -g pptruser -G audio,video pptruser && \
     mkdir -p /home/pptruser/Downloads && \
     chown -R pptruser:pptruser /home/pptruser && \
     npm cache clean --force
 
-# Run everything after as non-privileged user.
+# Run everything after as non-privileged user
 USER pptruser
 
 # Expose display port (for debugging)
@@ -45,11 +46,11 @@ EXPOSE 9222
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy over package.json, install project dependencies
-COPY package.json ./
+# Copy over package.json and install project dependencies
+COPY package.json ./ 
 RUN npm install
 
-# Copy the rest of the project
+# Copy the rest of the project files
 COPY . .
 
 # Command to start your Puppeteer script
