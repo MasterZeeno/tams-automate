@@ -4,41 +4,64 @@ on:
   # Schedule the scraper to run daily at midnight (UTC)
   schedule:
     - cron: "0 0 * * *"
-  
+
   # Allow manual triggering of the workflow
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Cache pnpm dependencies to speed up the build process
+      - name: Cache pnpm store
+        uses: actions/cache@v3
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      # Install Node.js dependencies
+      - name: Install dependencies
+        run: |
+          npm install -g pnpm
+          pnpm install
+
+      # Log in to Docker Hub to pull images
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Pull the latest Docker image
       - name: Pull Docker image
         run: docker pull masterzeeno/puppeteer-runner:latest
 
+      # Run the Docker container, with a mounted volume for results
       - name: Run Docker container
-        run: docker run masterzeeno/puppeteer-runner:latest
-
-      - name: Commit and push results
-        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Push if scheduled or manually triggered and successful
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase  # Prevent conflicts by pulling latest changes
+          docker run --rm \
+            -v ${{ github.workspace }}/results:/usr/src/app/results \
+            masterzeeno/puppeteer-runner:latest
 
-          # Check if there are changes to commit
-          if [ "$(git status --porcelain)" ]; then
-            git add results/*.json
-            git commit -m "Scraped data on: $(date +"%Y-%m-%d %H:%M:%S")"
-            git push
-          else
-            echo "No changes to commit."
+      # Check if there are results to upload
+      - name: Check for scraping results
+        run: |
+          if [ ! "$(ls -A results/*.json 2>/dev/null)" ]; then
+            echo "No scraping results found."
+            exit 1
           fi
+
+      # Upload the results as artifacts
+      - name: Upload Scraping Results as Artifacts
+        if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: scraping-results
+          path: results/*.json
