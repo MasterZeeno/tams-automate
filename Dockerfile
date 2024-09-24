@@ -30,12 +30,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg && \
     rm -rf /var/lib/apt/lists/* && \
     npm install -g puppeteer --unsafe-perm=true && \
-    # Install Chromium for Puppeteer
     npx puppeteer install && \
     groupadd -r pptruser && \
     useradd -rm -g pptruser -G audio,video pptruser && \
     mkdir -p /home/pptruser/Downloads && \
     chown -R pptruser:pptruser /home/pptruser && \
+    chown -R pptruser:pptruser /usr/src/app && \
     npm cache clean --force
 
 # Set working directory

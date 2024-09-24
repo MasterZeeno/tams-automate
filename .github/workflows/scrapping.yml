@@ -21,17 +21,17 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t puppeteer-runner .
+          docker build --build-arg CACHEBUST=$(date +%s) -t puppeteer-runner .
 
       - name: Run Puppeteer tests
         run: |
-          docker run --rm \
+          set -e
+          docker run --privileged --rm \
             -e ZEE_USERNAME=${{ secrets.ZEE_USERNAME }} \
             -e ZEE_PASSWORD=${{ secrets.ZEE_PASSWORD }} \
             -e TAMS_BASE_URL=${{ secrets.TAMS_BASE_URL }} \
             -e HCC_BASE_URL=${{ secrets.HCC_BASE_URL }} \
-            puppeteer-runner
-
+            puppeteer-runner || { echo "Puppeteer tests failed"; exit 1; }
 
       - name: Commit and push results
         if: ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success() }} # Push if scheduled or manually triggered and successful
