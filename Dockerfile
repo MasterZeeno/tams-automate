@@ -34,6 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     groupadd -r pptruser && \
     useradd -rm -g pptruser -G audio,video pptruser && \
     mkdir -p /home/pptruser/Downloads && \
+    mkdir -p /usr/src/app && \
     chown -R pptruser:pptruser /home/pptruser && \
     chown -R pptruser:pptruser /usr/src/app && \
     npm cache clean --force
