@@ -30,18 +30,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg && \
     rm -rf /var/lib/apt/lists/* && \
     npm install -g puppeteer --unsafe-perm=true && \
+    # Install Chromium for Puppeteer
     npx puppeteer install && \
     groupadd -r pptruser && \
     useradd -rm -g pptruser -G audio,video pptruser && \
     mkdir -p /home/pptruser/Downloads && \
     chown -R pptruser:pptruser /home/pptruser && \
     npm cache clean --force
-
-# Run everything after as non-privileged user
-USER pptruser
-
-# Expose display port (for debugging)
-EXPOSE 9222
 
 # Set working directory
 WORKDIR /usr/src/app
@@ -52,6 +47,12 @@ RUN npm install
 
 # Copy the rest of the project files
 COPY . .
+
+# Run everything after as non-privileged user
+USER pptruser
+
+# Expose display port (for debugging)
+EXPOSE 9222
 
 # Command to start your Puppeteer script
 CMD ["node", "scrapper3.js"]
