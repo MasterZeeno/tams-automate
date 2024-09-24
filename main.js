@@ -79,28 +79,43 @@ async function scrapeTable(page, tableURL, tbl_name) {
 }
 
 async function loginAndScrape() {
-    // const browser = await puppeteer.launch({ headless: true });
     const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        ignoreHTTPSErrors: true,
+        devtools: false,
+        args: [
+          '--headless=new',
+          '--disable-infobars',
+          '--enable-automation',
+          '--start-maximized',
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-accelerated-2d-canvas',
+          '--no-zygote',
+          '--no-first-run',
+          '--disable-web-security',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-extensions',
+          '--mute-audio',
+          '--incognito',
+          '--ignore-certificate-errors',
+          '--disable-blink-features=AutomationControlled'
+        ]
     })
+    
     const page = await browser.newPage();
-
+    const context = browser.defaultBrowserContext();
+    
+    await context.overridePermissions(process.env.HCC_BASE_URL, ['geolocation']);
+    await page.setGeolocation({
+        latitude: 14.5995,
+        longitude: 120.9842,
+        accuracy: 100
+    });
+    await page.emulateTimezone('Asia/Manila');
     await page.setExtraHTTPHeaders({
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
     });
-
-    // Set the geolocation
-    await page.setGeolocation({ latitude: 14.5322511, longitude: 121.022031 });
-
-    // Optionally, you can also set the viewport to match the location
-    await page.setViewport({
-        width: 1280,
-        height: 800,
-    });
-
-    const context = browser.defaultBrowserContext();
-    await context.overridePermissions(process.env.HCC_BASE_URL, ['geolocation']);
 
     // Login
     await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, w);
