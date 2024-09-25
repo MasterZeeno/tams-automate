@@ -47,7 +47,7 @@ jobs:
       - name: Run Docker container
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}/results:/usr/src/app/results \
+            -v ${{ github.workspace }}/results:/home/pptruser/results \
             masterzeeno/puppeteer-runner:latest
 
       # Check if there are results to upload
