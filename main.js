@@ -65,25 +65,10 @@ async function scrapeTable(page, tableURL, tbl_name) {
 async function loginAndScrape() {
     const browser = await puppeteer.launch({
         headless: 'new',
-        ignoreHTTPSErrors: true,
         devtools: false,
         args: [
-            '--disable-infobars',
-            '--enable-automation',
-            '--start-maximized',
             '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-accelerated-2d-canvas',
-            '--no-zygote',
-            '--no-first-run',
-            '--disable-web-security',
-            '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--disable-extensions',
-            '--mute-audio',
-            '--incognito',
-            '--ignore-certificate-errors',
-            '--disable-blink-features=AutomationControlled'
+            '--disable-dev-shm-usage'
         ]
     });
 

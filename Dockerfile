@@ -2,7 +2,13 @@
 FROM node:18-bullseye AS base
 
 # Set environment variables early to use cache efficiently
-ENV TZ=Asia/Manila \
+ENV 
+    HCC_BASE_URL=https://hcc-tams.com.ph \
+    TAMS_BASE_URL=https://hcc-tams.com.ph/tams \
+    ZEE_USERNAME=15913 \
+    ZEE_PASSWORD=546609529 \
+    LANG=en_PH.UTF-8 \
+    TZ=Asia/Manila \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
     DOCKER_BUILDKIT=1
@@ -12,10 +18,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Install dependencies for pnpm and Chrome in one RUN to reduce layers
 RUN apt-get update \
-    # See https://crbug.com/795759
     && apt-get install -yq libgconf-2-4 \
-    # Install latest chrome dev package, which installs the necessary libs to
-    # make the bundled version of Chromium that Puppeteer installs work.
     && apt-get install -y wget --no-install-recommends \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && wget https://mirrors.edge.kernel.org/ubuntu/pool/main/g/gcc-10/gcc-10-base_10-20200411-0ubuntu1_amd64.deb \
@@ -28,8 +31,12 @@ RUN apt-get update \
     && npm install -g pnpm \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Pre-cache dependencies by copying only the lock files first, enabling Docker to cache them
-WORKDIR /usr/src/app
+RUN groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser
+
+USER pptruser
+
+WORKDIR /home/pptruser
+
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies with pnpm in a separate layer to leverage cache more effectively
@@ -38,16 +45,8 @@ RUN pnpm install --frozen-lockfile
 # Now copy the rest of the application code
 COPY . .
 
-# Create a user for Puppeteer to avoid running as root
-RUN groupadd -r pptruser && useradd -rm -g pptruser -G audio,video pptruser \
-    && mkdir -p /usr/src/app/results \
-    && chown -R pptruser:pptruser /usr/src/app
-
-# Switch to Puppeteer user for security
-USER pptruser
-
 # Expose the result folder in case of scraping results
-VOLUME [ "/usr/src/app/results" ]
+VOLUME [ "/home/pptruser/results" ]
 
 # Default command to run Puppeteer scripts
 CMD ["pnpm", "run", "test"]
