@@ -6,7 +6,10 @@ ENV LANG=en_PH.UTF-8 \
     TZ=Asia/Manila \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
-    DOCKER_BUILDKIT=1
+    DOCKER_BUILDKIT=1 \
+    BUILDKIT_CONTEXT_KEEP_GIT_DIR=1 \
+    BUILDKIT_INLINE_CACHE=1 \
+    BUILDKIT_MULTI_PLATFORM=1
 
 # Set timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone

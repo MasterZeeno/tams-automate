@@ -87,18 +87,7 @@ async function loginAndScrape() {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
     });
 
-    // Login
-    try {
-        // Try to navigate to the page with the specified timeout
-        await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, { timeout: 6000 }); // Timeout set to 5 seconds
-    } catch (error) {
-        if (error instanceof puppeteer.errors.TimeoutError) {
-            // Take a screenshot upon timeout
-            await page.screenshot({ path: `${resultsDir}/timeout-screenshot.png`, fullPage: true });
-        } else {
-            console.log('An error occurred:', error);
-        }
-    }
+    await page.goto(`${process.env.TAMS_BASE_URL}/Auth`, { timeout: 6000 });
     
     await page.type('input[name="username"]', process.env.ZEE_USERNAME || '15913');
     await page.type('input[name="password"]', process.env.ZEE_PASSWORD || '546609529');
