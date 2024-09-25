@@ -28,13 +28,9 @@ USER pptruser
 
 WORKDIR /home/pptruser
 
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies with pnpm in a separate layer to leverage cache more effectively
-RUN pnpm install --frozen-lockfile
-
-# Now copy the rest of the application code
 COPY . .
+
+RUN pnpm install --frozen-lockfile
 
 # Expose the result folder in case of scraping results
 VOLUME [ "/home/pptruser/results" ]
