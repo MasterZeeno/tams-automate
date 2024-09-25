@@ -3,7 +3,6 @@ FROM node:18-bullseye AS base
 
 # Set environment variables early to use cache efficiently
 ENV LANG=en_PH.UTF-8 \
-    TZ=Asia/Manila \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \
     DOCKER_BUILDKIT=1 \
@@ -11,11 +10,13 @@ ENV LANG=en_PH.UTF-8 \
     BUILDKIT_INLINE_CACHE=1 \
     BUILDKIT_MULTI_PLATFORM=1
 
-# Set timezone
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-
 # Install dependencies for pnpm and Chrome in one RUN to reduce layers
 RUN apt-get update \
+    && apt-get install -yq apt-utils locales \
+    && locale-gen en_PH.UTF-8 \
+    && update-locale LANG=en_PH.UTF-8 LC_ALL=en_PH.UTF-8 \
+    && ln -fs /usr/share/zoneinfo/Asia/Manila /etc/localtime \
+    && dpkg-reconfigure -f noninteractive tzdata \
     && apt-get install -yq libgconf-2-4 \
     && apt-get install -y wget --no-install-recommends \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \

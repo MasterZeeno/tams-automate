@@ -26,12 +26,6 @@ jobs:
           push: true
           load: true
           tags: masterzeeno/puppeteer-runner:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max  
-      - name: Move cache
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
       - name: Run Puppeteer in Docker
         run: |
           docker run --rm \
