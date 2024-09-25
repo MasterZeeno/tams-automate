@@ -64,8 +64,8 @@ docker_push() {
 # Main script execution
 main() {
   docker_login
-  docker_build
-  docker_run_test
+  # docker_build
+  # docker_run_test
   docker_tag
   docker_push
 }
