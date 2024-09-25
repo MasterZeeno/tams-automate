@@ -110,7 +110,7 @@ async function loginAndScrape() {
         attendance: 'attendance',
         overtime: 'overtime',
         officialbusiness: 'ob',
-        leave: 'leaves',
+        leave: 'leaves'
     };
 
     // Scrape all tables in sequence on the same page
