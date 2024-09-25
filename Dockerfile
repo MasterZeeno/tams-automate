@@ -2,12 +2,7 @@
 FROM node:18-bullseye AS base
 
 # Set environment variables early to use cache efficiently
-ENV 
-    HCC_BASE_URL=https://hcc-tams.com.ph \
-    TAMS_BASE_URL=https://hcc-tams.com.ph/tams \
-    ZEE_USERNAME=15913 \
-    ZEE_PASSWORD=546609529 \
-    LANG=en_PH.UTF-8 \
+ENV LANG=en_PH.UTF-8 \
     TZ=Asia/Manila \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable \

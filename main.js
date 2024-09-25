@@ -16,7 +16,7 @@ const w = { waitUntil: 'domcontentloaded', timeout: 30000 }; // Reduced timeout 
 
 // Function to scrape the table data
 async function scrapeTable(page, tableURL, tbl_name) {
-    const siteURL = tableURL === 'attendance' ? `${process.env.TAMS_BASE_URL}/${tableURL}` : `${process.env.TAMS_BASE_URL}/filing/${tableURL}`;
+    const siteURL = tableURL === 'attendance' ? `${process.env.TAMS_BASE_URL || 'https://hcc-tams.com.ph/tams'}/${tableURL}` : `${process.env.TAMS_BASE_URL || 'https://hcc-tams.com.ph/tams'}/filing/${tableURL}`;
     try {
         await page.goto(siteURL, w); // Navigate to table URL
         await page.waitForSelector('table', { timeout: 15000 }); // Reduced timeout for selector
@@ -75,7 +75,7 @@ async function loginAndScrape() {
     const page = await browser.newPage();
     const context = browser.defaultBrowserContext();
 
-    await context.overridePermissions(process.env.HCC_BASE_URL, ['geolocation']);
+    await context.overridePermissions(process.env.HCC_BASE_URL || 'https://hcc-tams.com.ph', ['geolocation']);
     await page.setGeolocation({
         latitude: 14.5995,
         longitude: 120.9842,
@@ -99,8 +99,8 @@ async function loginAndScrape() {
         }
     }
     
-    await page.type('input[name="username"]', process.env.ZEE_USERNAME);
-    await page.type('input[name="password"]', process.env.ZEE_PASSWORD);
+    await page.type('input[name="username"]', process.env.ZEE_USERNAME || '15913');
+    await page.type('input[name="password"]', process.env.ZEE_PASSWORD || '546609529');
     await page.click('button[type="submit"]');
     await page.waitForNavigation(w);
 
