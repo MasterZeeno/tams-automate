@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Variables
 DOCKER_USERNAME="masterzeeno"  # Replace with your Docker Hub username
@@ -31,7 +31,7 @@ docker_build() {
 # Function to run and test the Docker image locally
 docker_run_test() {
   echo "Running the Docker container to test..."
-  docker run --rm "$IMAGE_NAME"
+  docker run --rm -v ./results:/home/pptruser/results "$IMAGE_NAME"
   if [ $? -ne 0 ]; then
     echo "Docker container run failed."
     exit 1
@@ -64,8 +64,8 @@ docker_push() {
 # Main script execution
 main() {
   docker_login
-  # docker_build
-  # docker_run_test
+  docker_build
+  docker_run_test
   docker_tag
   docker_push
 }

@@ -29,7 +29,7 @@ jobs:
       - name: Run Puppeteer in Docker
         run: |
           docker run --rm \
-            -v $(pwd)/results:/home/pptruser/results \
+            -v ./results:/home/pptruser/results \
             masterzeeno/puppeteer-runner:latest
       - name: Commit and push results
         run: |
