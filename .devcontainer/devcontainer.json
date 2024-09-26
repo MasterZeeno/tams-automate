@@ -12,6 +12,6 @@
 	"postCreateCommand": "pnpm install", // Install dependencies after container creation
 	"remoteUser": "pptruser", // Use the non-root user created in the Dockerfile
 	"mounts": [
-		"source=${localWorkspaceFolder}/results,target=/usr/src/app/results,type=bind" // Bind mount for results folder
+		"source=${localWorkspaceFolder}/results,target=/home/pptruser/results,type=bind" // Bind mount for results folder
 	]
 }

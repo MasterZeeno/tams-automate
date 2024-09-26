@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const puppeteer = require('puppeteer-core');
+const puppeteer = require('puppeteer');
 const moment = require('moment');
 const dotenv = require('dotenv');
 dotenv.config();
@@ -73,9 +73,6 @@ async function scrapeTable(page, tableURL, tbl_name) {
 // Main function to log in and scrape
 async function loginAndScrape() {
     const browser = await puppeteer.launch({
-        executablePath: '/usr/bin/google-chrome-stable',
-        headless: 'new',
-        devtools: false,
         args: ['--no-sandbox', '--disable-dev-shm-usage']
     });
 

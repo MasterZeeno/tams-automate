@@ -1,0 +1,21 @@
+name: Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Puppeteer-Container-test
+        uses: AMO-brandon/puppeteer-container@v0.2.0
+        with:
+          args: pnpm i
+      - name: Test
+        uses: AMO-brandon/puppeteer-container@v0.2.0
+        with:
+            args: pnpm t
+    
