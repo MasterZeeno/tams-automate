@@ -5,7 +5,7 @@
 		"dockerfile": "../Dockerfile" // Path to your Dockerfile
 	},
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {
+		"ghcr.io/devcontainers/features/node:2": {
 			"version": "18" // Ensures Node.js version matches your Dockerfile
 		}
 	},
